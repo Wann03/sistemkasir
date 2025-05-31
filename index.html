@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Kasir - POS System</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <style>
+      :root {
+        --primary-color: #4e73df;
+        --secondary-color: #f8f9fc;
+        --accent-color: #2e59d9;
+        --text-color: #5a5c69;
+      }
+
+      body {
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        background-image: url("https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+
+      .login-container {
+        max-width: 450px;
+        width: 100%;
+        margin: 2rem auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.3);
+        overflow: hidden;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .login-header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+      }
+
+      .login-body {
+        padding: 2rem;
+      }
+
+      .form-control {
+        padding: 0.75rem 1rem;
+        border-radius: 0.35rem;
+        margin-bottom: 1rem;
+        border: 1px solid #d1d3e2;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+      }
+
+      .btn-login {
+        background-color: var(--primary-color);
+        border: none;
+        padding: 0.75rem;
+        font-weight: 600;
+        width: 100%;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+      }
+
+      .btn-login:hover {
+        background-color: var(--accent-color);
+        transform: translateY(-1px);
+      }
+
+      .btn-register {
+        background-color: #858796;
+        border: none;
+        padding: 0.75rem;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s;
+      }
+
+      .btn-register:hover {
+        background-color: #6c6e7e;
+        transform: translateY(-1px);
+      }
+
+      .input-group-text {
+        background-color: #f8f9fc;
+        border-right: none;
+      }
+
+      .input-group .form-control {
+        border-left: none;
+      }
+
+      .logo {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .error-message {
+        color: #e74a3b;
+        font-size: 0.875rem;
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+        display: none;
+      }
+
+      .brand-text {
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+
+      .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="login-container">
+        <div class="login-header">
+          <div class="logo">
+            <i class="bi bi-cash-stack"></i>
+          </div>
+          <h2 class="brand-text">POS SYSTEM</h2>
+          <p>Silakan login untuk melanjutkan</p>
+        </div>
+        <div class="login-body">
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <div class="input-group">
+              <span class="input-group-text"
+                ><i class="bi bi-envelope"></i
+              ></span>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                placeholder="masukkan email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                placeholder="masukkan password"
+                required
+              />
+            </div>
+          </div>
+
+          <div id="errorMessage" class="error-message">
+            <i class="bi bi-exclamation-circle"></i>
+            <span id="errorText"></span>
+          </div>
+
+          <button id="loginBtn" class="btn btn-login text-white">
+            <i class="bi bi-box-arrow-in-right"></i> Login
+          </button>
+          <button id="registerBtn" class="btn btn-register text-white">
+            <i class="bi bi-person-plus"></i> Register
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase SDK v9 Modular -->
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        serverTimestamp,
+      } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyB4rI1o94zPtF2OOHE1-sRDTUAcxSHhWC4",
+        authDomain: "kasir-a8d76.firebaseapp.com",
+        databaseURL:
+          "https://kasir-a8d76-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "kasir-a8d76",
+        storageBucket: "kasir-a8d76.appspot.com",
+        messagingSenderId: "703845426764",
+        appId: "1:703845426764:web:ac8d4038e8aed47c8336e9",
+        measurementId: "G-6G7JV2CHMJ",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      // DOM Elements
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const loginBtn = document.getElementById("loginBtn");
+      const registerBtn = document.getElementById("registerBtn");
+      const errorMessage = document.getElementById("errorMessage");
+      const errorText = document.getElementById("errorText");
+
+      // Show error message
+      function showError(message) {
+        errorText.textContent = message;
+        errorMessage.style.display = "block";
+      }
+
+      // Hide error message
+      function hideError() {
+        errorMessage.style.display = "none";
+      }
+
+      // Validate form
+      function validateForm() {
+        hideError();
+
+        if (!emailInput.value || !passwordInput.value) {
+          showError("Email dan password harus diisi");
+          return false;
+        }
+
+        if (passwordInput.value.length < 6) {
+          showError("Password harus minimal 6 karakter");
+          return false;
+        }
+
+        return true;
+      }
+
+      // Login function
+      async function login() {
+        if (!validateForm()) return;
+
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        // Show loading state
+        const originalText = loginBtn.innerHTML;
+        loginBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memproses...';
+        loginBtn.disabled = true;
+
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          // Redirect to main page after successful login
+          window.location.href = "main.html";
+        } catch (error) {
+          // Handle errors
+          loginBtn.innerHTML = originalText;
+          loginBtn.disabled = false;
+
+          let errorMessage = "Terjadi kesalahan saat login";
+          switch (error.code) {
+            case "auth/invalid-email":
+              errorMessage = "Format email tidak valid";
+              break;
+            case "auth/user-disabled":
+              errorMessage = "Akun ini dinonaktifkan";
+              break;
+            case "auth/user-not-found":
+              errorMessage = "Akun tidak ditemukan";
+              break;
+            case "auth/wrong-password":
+              errorMessage = "Password salah";
+              break;
+            default:
+              errorMessage = error.message;
+          }
+          showError(errorMessage);
+        }
+      }
+
+      // Register function
+      async function register() {
+        if (!validateForm()) return;
+
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        // Show loading state
+        const originalText = registerBtn.innerHTML;
+        registerBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memproses...';
+        registerBtn.disabled = true;
+
+        try {
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          const user = userCredential.user;
+
+          // Save additional user data to Firestore
+          await setDoc(doc(db, "users", user.uid), {
+            email: email,
+            nama: "Kasir Baru",
+            role: "kasir",
+            createdAt: serverTimestamp(),
+          });
+
+          // Registration successful
+          alert("Pendaftaran berhasil! Akun Anda telah dibuat.");
+          // Clear form
+          emailInput.value = "";
+          passwordInput.value = "";
+        } catch (error) {
+          // Handle errors
+          registerBtn.innerHTML = originalText;
+          registerBtn.disabled = false;
+
+          let errorMessage = "Terjadi kesalahan saat pendaftaran";
+          switch (error.code) {
+            case "auth/email-already-in-use":
+              errorMessage = "Email sudah digunakan";
+              break;
+            case "auth/invalid-email":
+              errorMessage = "Format email tidak valid";
+              break;
+            case "auth/weak-password":
+              errorMessage = "Password terlalu lemah";
+              break;
+            default:
+              errorMessage = error.message;
+          }
+          showError(errorMessage);
+        }
+      }
+
+      // Event listeners
+      loginBtn.addEventListener("click", login);
+      registerBtn.addEventListener("click", register);
+
+      // Allow form submission on Enter key
+      document.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          login();
+        }
+      });
+    </script>
+  </body>
+</html>

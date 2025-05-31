@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistem Kasir - Halaman Utama</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+
+    <style>
+      :root {
+        --primary-color: #4e73df;
+        --secondary-color: #f8f9fc;
+        --accent-color: #2e59d9;
+        --text-color: #5a5c69;
+        --success-color: #1cc88a;
+        --danger-color: #e74a3b;
+        --warning-color: #f6c23e;
+      }
+
+      body {
+        background-color: #f8f9fc;
+        color: var(--text-color);
+      }
+
+      .navbar {
+        background-color: white;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+      }
+
+      .sidebar {
+        background: linear-gradient(
+          180deg,
+          var(--primary-color) 10%,
+          #224abe 100%
+        );
+        min-height: calc(100vh - 56px);
+        color: white;
+      }
+
+      .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.2rem;
+      }
+
+      .sidebar .nav-link:hover {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .sidebar .nav-link.active {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .sidebar .nav-link i {
+        margin-right: 0.5rem;
+      }
+
+      .card {
+        border: none;
+        border-radius: 0.35rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        margin-bottom: 1.5rem;
+      }
+
+      .card-header {
+        background-color: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+        padding: 1rem 1.35rem;
+        font-weight: 600;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
+      .btn-primary:hover {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+      }
+
+      .btn-success {
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+        border-color: var(--danger-color);
+      }
+
+      .btn-warning {
+        background-color: var(--warning-color);
+        border-color: var(--warning-color);
+        color: #1f2d3d;
+      }
+
+      .table {
+        color: var(--text-color);
+      }
+
+      .table th {
+        border-top: none;
+        font-weight: 600;
+      }
+
+      .menu-card {
+        transition: all 0.3s;
+        cursor: pointer;
+      }
+
+      .menu-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1.5rem 0 rgba(58, 59, 69, 0.2);
+      }
+
+      .menu-card .card-body {
+        padding: 1.25rem;
+      }
+
+      .menu-card h5 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .menu-card .badge {
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+      }
+
+      .order-item {
+        border-left: 0.25rem solid var(--primary-color);
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        background-color: white;
+        border-radius: 0.25rem;
+      }
+
+      .receipt {
+        background-color: white;
+        border-radius: 0.35rem;
+        padding: 1.5rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+      }
+
+      .receipt-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed #e3e6f0;
+      }
+
+      .receipt-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+      }
+
+      .receipt-total {
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-top: 1px dashed #e3e6f0;
+        padding-top: 1rem;
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand navbar-light sticky-top mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <i class="bi bi-cash-stack me-2"></i>
+          <span class="fw-bold">Sistem Kasir</span>
+        </a>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              id="navbarDropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+            >
+              <i class="bi bi-person-circle me-1"></i>
+              <span id="username">User</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="#" id="logoutBtn"
+                  ><i class="bi bi-box-arrow-right me-2"></i>Logout</a
+                >
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+          <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link active" href="#" id="dashboardTab">
+                  <i class="bi bi-speedometer2"></i>
+                  Dashboard
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" id="menuTab">
+                  <i class="bi bi-book"></i>
+                  Kelola Menu
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" id="ordersTab">
+                  <i class="bi bi-receipt"></i>
+                  Daftar Pesanan
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" id="reportsTab">
+                  <i class="bi bi-graph-up"></i>
+                  Laporan
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+          <!-- Dashboard Section -->
+          <div id="dashboardSection">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Dashboard</h1>
+              <div class="btn-toolbar mb-2 mb-md-0">
+                <button
+                  class="btn btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#newOrderModal"
+                >
+                  <i class="bi bi-plus-circle me-1"></i> Pesanan Baru
+                </button>
+              </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="text-xs font-weight-bold text-primary text-uppercase mb-1"
+                        >
+                          Pendapatan Hari Ini
+                        </div>
+                        <div
+                          class="h5 mb-0 font-weight-bold text-gray-800"
+                          id="todayIncome"
+                        >
+                          Rp0
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="text-xs font-weight-bold text-success text-uppercase mb-1"
+                        >
+                          Total Pesanan Hari Ini
+                        </div>
+                        <div
+                          class="h5 mb-0 font-weight-bold text-gray-800"
+                          id="todayOrders"
+                        >
+                          0
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="bi bi-receipt fs-2 text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="text-xs font-weight-bold text-info text-uppercase mb-1"
+                        >
+                          Menu Tersedia
+                        </div>
+                        <div
+                          class="h5 mb-0 font-weight-bold text-gray-800"
+                          id="totalMenu"
+                        >
+                          0
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="bi bi-book fs-2 text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="text-xs font-weight-bold text-warning text-uppercase mb-1"
+                        >
+                          Pesanan Proses
+                        </div>
+                        <div
+                          class="h5 mb-0 font-weight-bold text-gray-800"
+                          id="processingOrders"
+                        >
+                          0
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="bi bi-hourglass-split fs-2 text-gray-300"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menu List -->
+            <h4 class="mb-3">Menu Populer</h4>
+            <div class="row" id="popularMenuList"></div>
+          </div>
+
+          <!-- Menu Management Section -->
+          <div id="menuSection" style="display: none">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Kelola Menu</h1>
+              <div class="btn-toolbar mb-2 mb-md-0">
+                <button
+                  class="btn btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addMenuModal"
+                >
+                  <i class="bi bi-plus-circle me-1"></i> Tambah Menu
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-striped table-hover" id="menuTable">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Menu</th>
+                    <th>Kategori</th>
+                    <th>Harga</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="menuTableBody">
+                  <!-- Menu data will be loaded here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Orders Section -->
+          <div id="ordersSection" style="display: none">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Daftar Pesanan</h1>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-striped table-hover" id="ordersTable">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>ID Pesanan</th>
+                    <th>Tanggal</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                  <!-- Orders data will be loaded here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Reports Section -->
+          <div id="reportsSection" style="display: none">
+            <div
+              class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            >
+              <h1 class="h2">Laporan Penjualan</h1>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <i class="bi bi-calendar me-2"></i> Filter Tanggal
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="startDate" class="form-label"
+                          >Dari Tanggal</label
+                        >
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="startDate"
+                        />
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label for="endDate" class="form-label"
+                          >Sampai Tanggal</label
+                        >
+                        <input type="date" class="form-control" id="endDate" />
+                      </div>
+                    </div>
+                    <button class="btn btn-primary" id="filterReportBtn">
+                      <i class="bi bi-funnel me-1"></i> Filter
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <i class="bi bi-graph-up me-2"></i> Ringkasan
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-6">
+                        <p class="mb-1">Total Pendapatan</p>
+                        <h4 id="reportTotalIncome">Rp0</h4>
+                      </div>
+                      <div class="col-6">
+                        <p class="mb-1">Total Pesanan</p>
+                        <h4 id="reportTotalOrders">0</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <i class="bi bi-table me-2"></i> Data Penjualan
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table
+                    class="table table-striped table-hover"
+                    id="reportsTable"
+                  >
+                    <thead>
+                      <tr>
+                        <th>No</th>
+                        <th>Tanggal</th>
+                        <th>ID Pesanan</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="reportsTableBody">
+                      <!-- Reports data will be loaded here -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add Menu Modal -->
+    <div
+      class="modal fade"
+      id="addMenuModal"
+      tabindex="-1"
+      aria-labelledby="addMenuModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addMenuModalLabel">Tambah Menu Baru</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addMenuForm">
+              <div class="mb-3">
+                <label for="menuName" class="form-label">Nama Menu</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="menuName"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="menuCategory" class="form-label">Kategori</label>
+                <select class="form-select" id="menuCategory" required>
+                  <option value="">Pilih Kategori</option>
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Snack">Snack</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="menuPrice" class="form-label">Harga</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="menuPrice"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="menuStatus" class="form-label">Status</label>
+                <select class="form-select" id="menuStatus" required>
+                  <option value="Tersedia">Tersedia</option>
+                  <option value="Habis">Habis</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="menuImage" class="form-label">Foto Menu</label>
+                <input type="file" class="form-control" id="menuImage" />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Batal
+            </button>
+            <button type="button" class="btn btn-primary" id="saveMenuBtn">
+              Simpan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Menu Modal -->
+    <div
+      class="modal fade"
+      id="editMenuModal"
+      tabindex="-1"
+      aria-labelledby="editMenuModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editMenuModalLabel">Edit Menu</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="editMenuForm">
+              <input type="hidden" id="editMenuId" />
+              <div class="mb-3">
+                <label for="editMenuName" class="form-label">Nama Menu</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="editMenuName"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="editMenuCategory" class="form-label"
+                  >Kategori</label
+                >
+                <select class="form-select" id="editMenuCategory" required>
+                  <option value="">Pilih Kategori</option>
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Snack">Snack</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editMenuPrice" class="form-label">Harga</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="editMenuPrice"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="editMenuStatus" class="form-label">Status</label>
+                <select class="form-select" id="editMenuStatus" required>
+                  <option value="Tersedia">Tersedia</option>
+                  <option value="Habis">Habis</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editMenuImage" class="form-label">Foto Menu</label>
+                <input type="file" class="form-control" id="editMenuImage" />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Batal
+            </button>
+            <button type="button" class="btn btn-primary" id="updateMenuBtn">
+              Update
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Order Modal -->
+    <div class="modal fade" id="newOrderModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Pesanan Baru</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-8">
+                <h5>Daftar Menu</h5>
+                <div class="row" id="modalMenuList"></div>
+              </div>
+              <div class="col-md-4">
+                <h5>Pesanan</h5>
+                <div id="orderItemsContainer" class="mb-3">
+                  <p class="text-muted">Belum ada item pesanan</p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <h5>Total:</h5>
+                  <h5 id="orderTotal">Rp0</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Batal
+            </button>
+            <button type="button" class="btn btn-primary" id="submitOrderBtn">
+              Simpan Pesanan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div
+      class="modal fade"
+      id="orderDetailsModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              Detail Pesanan <span id="orderIdTitle"></span>
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="receipt">
+              <div class="receipt-header">
+                <h4>Restoran Kita</h4>
+                <p>Jl. Contoh No. 123, Kota</p>
+                <p>Telp: 08123456789</p>
+              </div>
+
+              <div class="mb-3">
+                <p class="mb-1">
+                  ID Pesanan: <strong id="detailOrderId"></strong>
+                </p>
+                <p class="mb-1">
+                  Tanggal: <strong id="detailOrderDate"></strong>
+                </p>
+                <p class="mb-1">
+                  Kasir: <strong id="detailOrderCashier"></strong>
+                </p>
+                <p class="mb-1">
+                  Status: <strong id="detailOrderStatus"></strong>
+                </p>
+              </div>
+
+              <hr />
+
+              <div id="orderDetailsList"></div>
+
+              <div class="receipt-total d-flex justify-content-between">
+                <span>Total:</span>
+                <strong id="detailOrderTotal"></strong>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Tutup
+            </button>
+            <button
+              type="button"
+              class="btn btn-success"
+              id="completeOrderBtn"
+              style="display: none"
+            >
+              Selesaikan Pesanan
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              id="cancelOrderBtn"
+              style="display: none"
+            >
+              Batalkan Pesanan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Main Script -->
+    <script>
+      // Initialize Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyB4rI1o94zPtF2OOHE1-sRDTUAcxSHhWC4",
+        authDomain: "kasir-a8d76.firebaseapp.com",
+        databaseURL:
+          "https://kasir-a8d76-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "kasir-a8d76",
+        storageBucket: "kasir-a8d76.appspot.com",
+        messagingSenderId: "703845426764",
+        appId: "1:703845426764:web:ac8d4038e8aed47c8336e9",
+        measurementId: "G-6G7JV2CHMJ",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+
+      // Collections
+      const menuCollection = db.collection("Menu");
+      const ordersCollection = db.collection("Pesanan");
+      const orderDetailsCollection = db.collection("DetailPesanan");
+      const receiptsCollection = db.collection("Struk");
+
+      // Current user
+      let currentUser = null;
+
+      // Check auth state
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = "index.html";
+        } else {
+          currentUser = user;
+          document.getElementById("username").textContent = user.email;
+          loadDashboardData();
+          loadMenuData();
+          loadOrdersData();
+          setupEventListeners();
+        }
+      });
+
+      // Setup event listeners
+      function setupEventListeners() {
+        // Sidebar navigation
+        document
+          .getElementById("dashboardTab")
+          .addEventListener("click", (e) => {
+            e.preventDefault();
+            showSection("dashboardSection");
+            setActiveTab("dashboardTab");
+          });
+
+        document.getElementById("menuTab").addEventListener("click", (e) => {
+          e.preventDefault();
+          showSection("menuSection");
+          setActiveTab("menuTab");
+        });
+
+        document.getElementById("ordersTab").addEventListener("click", (e) => {
+          e.preventDefault();
+          showSection("ordersSection");
+          setActiveTab("ordersTab");
+        });
+
+        document.getElementById("reportsTab").addEventListener("click", (e) => {
+          e.preventDefault();
+          showSection("reportsSection");
+          setActiveTab("reportsTab");
+        });
+
+        // Logout button
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+          auth.signOut().then(() => {
+            window.location.href = "index.html";
+          });
+        });
+
+        // Menu management
+        document
+          .getElementById("saveMenuBtn")
+          .addEventListener("click", addMenu);
+        document
+          .getElementById("updateMenuBtn")
+          .addEventListener("click", updateMenu);
+
+        // Order management
+        document
+          .getElementById("submitOrderBtn")
+          .addEventListener("click", submitOrder);
+        document
+          .getElementById("completeOrderBtn")
+          .addEventListener("click", completeOrder);
+        document
+          .getElementById("cancelOrderBtn")
+          .addEventListener("click", cancelOrder);
+
+        // Reports
+        document
+          .getElementById("filterReportBtn")
+          .addEventListener("click", filterReports);
+      }
+
+      // Show section and hide others
+      function showSection(sectionId) {
+        document.getElementById("dashboardSection").style.display = "none";
+        document.getElementById("menuSection").style.display = "none";
+        document.getElementById("ordersSection").style.display = "none";
+        document.getElementById("reportsSection").style.display = "none";
+
+        document.getElementById(sectionId).style.display = "block";
+      }
+
+      // Set active tab
+      function setActiveTab(tabId) {
+        document.querySelectorAll(".nav-link").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        document.getElementById(tabId).classList.add("active");
+      }
+
+      // Load dashboard data
+      function loadDashboardData() {
+        // Load today's income
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        receiptsCollection
+          .where("waktu_cetak", ">=", today)
+          .get()
+          .then((snapshot) => {
+            let total = 0;
+            snapshot.forEach((doc) => {
+              total += doc.data().total_harga;
+            });
+            document.getElementById(
+              "todayIncome"
+            ).textContent = `Rp${total.toLocaleString()}`;
+          });
+
+        // Load today's orders count
+        ordersCollection
+          .where("tanggal_waktu", ">=", today)
+          .get()
+          .then((snapshot) => {
+            document.getElementById("todayOrders").textContent = snapshot.size;
+          });
+
+        // Load total menu
+        menuCollection.get().then((snapshot) => {
+          document.getElementById("totalMenu").textContent = snapshot.size;
+        });
+
+        // Load processing orders
+        ordersCollection
+          .where("status", "==", "Proses")
+          .get()
+          .then((snapshot) => {
+            document.getElementById("processingOrders").textContent =
+              snapshot.size;
+          });
+
+        // Load popular menu
+        loadPopularMenu();
+      }
+
+      // Load popular menu
+      function loadPopularMenu() {
+        const popularMenuList = document.getElementById("popularMenuList");
+        popularMenuList.innerHTML = "";
+
+        // In a real app, you would query the most ordered items
+        // For demo, we'll just show 4 random available items
+        menuCollection
+          .where("status", "==", "Tersedia")
+          .limit(4)
+          .get()
+          .then((snapshot) => {
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              const card = document.createElement("div");
+              card.className = "col-md-3";
+              card.innerHTML = `
+
+                            <div class="card menu-card h-100">
+                                <div class="card-body text-center">
+                                    <h5>${data.nama_menu}</h5>
+                                    <span class="badge bg-primary mb-2">${
+                                      data.kategori
+                                    }</span>
+                                    <p class="fw-bold">Rp${data.harga.toLocaleString()}</p>
+                                    <button class="btn btn-sm btn-primary" onclick="addToOrder('${
+                                      doc.id
+                                    }', '${data.nama_menu}', ${data.harga})">
+                                        <i class="bi bi-plus"></i> Tambah
+                                    </button>
+                                </div>
+                            </div>`;
+              popularMenuList.appendChild(card);
+            });
+          });
+      }
+
+      // Load menu data for management
+      function loadMenuData() {
+        const menuTableBody = document.getElementById("menuTableBody");
+        menuTableBody.innerHTML = "";
+
+        menuCollection
+          .orderBy("nama_menu")
+          .get()
+          .then((snapshot) => {
+            let counter = 1;
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                            <td>${counter++}</td>
+                            <td>${data.nama_menu}</td>
+                            <td>${data.kategori}</td>
+                            <td>Rp${data.harga.toLocaleString()}</td>
+                            <td>
+                                <span class="badge ${
+                                  data.status === "Tersedia"
+                                    ? "bg-success"
+                                    : "bg-danger"
+                                }">
+                                    ${data.status}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1" onclick="editMenu('${
+                                  doc.id
+                                }')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteMenu('${
+                                  doc.id
+                                }')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>`;
+              menuTableBody.appendChild(row);
+            });
+          });
+      }
+
+      // Load orders data
+      function loadOrdersData() {
+        const ordersTableBody = document.getElementById("ordersTableBody");
+        ordersTableBody.innerHTML = "";
+
+        ordersCollection
+          .orderBy("tanggal_waktu", "desc")
+          .limit(20)
+          .get()
+          .then((snapshot) => {
+            let counter = 1;
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              const date = data.tanggal_waktu.toDate();
+
+              let statusBadge = "";
+              if (data.status === "Selesai") {
+                statusBadge = "bg-success";
+              } else if (data.status === "Dibatalkan") {
+                statusBadge = "bg-danger";
+              } else {
+                statusBadge = "bg-warning text-dark";
+              }
+
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                            <td>${counter++}</td>
+                            <td>${doc.id}</td>
+                            <td>${date.toLocaleString()}</td>
+                            <td>Rp${
+                              data.total_harga?.toLocaleString() || "0"
+                            }</td>
+                            <td>
+                                <span class="badge ${statusBadge}">${
+                data.status
+              }</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="viewOrderDetails('${
+                                  doc.id
+                                }')">
+                                    <i class="bi bi-eye"></i> Lihat
+                                </button>
+                            </td>`;
+              ordersTableBody.appendChild(row);
+            });
+          });
+      }
+
+      // Load reports data
+      function filterReports() {
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        if (!startDate || !endDate) {
+          alert("Silakan pilih rentang tanggal");
+          return;
+        }
+
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        const reportsTableBody = document.getElementById("reportsTableBody");
+        reportsTableBody.innerHTML = "";
+
+        let totalIncome = 0;
+        let totalOrders = 0;
+
+        ordersCollection
+          .where("tanggal_waktu", ">=", start)
+          .where("tanggal_waktu", "<=", end)
+          .where("status", "==", "Selesai")
+          .orderBy("tanggal_waktu", "desc")
+          .get()
+          .then((snapshot) => {
+            totalOrders = snapshot.size;
+            document.getElementById("reportTotalOrders").textContent =
+              totalOrders;
+
+            let counter = 1;
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              const date = data.tanggal_waktu.toDate();
+
+              totalIncome += data.total_harga || 0;
+
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                            <td>${counter++}</td>
+                            <td>${date.toLocaleDateString()}</td>
+                            <td>${doc.id}</td>
+                            <td>Rp${
+                              data.total_harga?.toLocaleString() || "0"
+                            }</td>
+                            <td>
+                                <span class="badge bg-success">${
+                                  data.status
+                                }</span>
+                            </td>`;
+              reportsTableBody.appendChild(row);
+            });
+
+            document.getElementById(
+              "reportTotalIncome"
+            ).textContent = `Rp${totalIncome.toLocaleString()}`;
+          });
+      }
+
+      // Add new menu
+      function addMenu() {
+        const name = document.getElementById("menuName").value;
+        const category = document.getElementById("menuCategory").value;
+        const price = parseInt(document.getElementById("menuPrice").value);
+        const status = document.getElementById("menuStatus").value;
+
+        if (!name || !category || !price) {
+          alert("Silakan lengkapi semua field");
+          return;
+        }
+
+        menuCollection
+          .add({
+            nama_menu: name,
+            kategori: category,
+            harga: price,
+            status: status,
+          })
+          .then(() => {
+            alert("Menu berhasil ditambahkan");
+            document.getElementById("addMenuForm").reset();
+            $("#addMenuModal").modal("hide");
+            loadMenuData();
+            loadDashboardData();
+          })
+          .catch((error) => {
+            console.error("Error adding menu: ", error);
+            alert("Gagal menambahkan menu");
+          });
+      }
+
+      // Edit menu - open modal
+      function editMenu(menuId) {
+        menuCollection
+          .doc(menuId)
+          .get()
+          .then((doc) => {
+            if (doc.exists) {
+              const data = doc.data();
+              document.getElementById("editMenuId").value = menuId;
+              document.getElementById("editMenuName").value = data.nama_menu;
+              document.getElementById("editMenuCategory").value = data.kategori;
+              document.getElementById("editMenuPrice").value = data.harga;
+              document.getElementById("editMenuStatus").value = data.status;
+
+              $("#editMenuModal").modal("show");
+            }
+          });
+      }
+
+      // Update menu
+      function updateMenu() {
+        const menuId = document.getElementById("editMenuId").value;
+        const name = document.getElementById("editMenuName").value;
+        const category = document.getElementById("editMenuCategory").value;
+        const price = parseInt(document.getElementById("editMenuPrice").value);
+        const status = document.getElementById("editMenuStatus").value;
+
+        if (!name || !category || !price) {
+          alert("Silakan lengkapi semua field");
+          return;
+        }
+
+        menuCollection
+          .doc(menuId)
+          .update({
+            nama_menu: name,
+            kategori: category,
+            harga: price,
+            status: status,
+          })
+          .then(() => {
+            alert("Menu berhasil diupdate");
+            $("#editMenuModal").modal("hide");
+            loadMenuData();
+            loadDashboardData();
+          })
+          .catch((error) => {
+            console.error("Error updating menu: ", error);
+            alert("Gagal mengupdate menu");
+          });
+      }
+
+      // Delete menu
+      function deleteMenu(menuId) {
+        if (confirm("Apakah Anda yakin ingin menghapus menu ini?")) {
+          menuCollection
+            .doc(menuId)
+            .delete()
+            .then(() => {
+              alert("Menu berhasil dihapus");
+              loadMenuData();
+              loadDashboardData();
+            })
+            .catch((error) => {
+              console.error("Error deleting menu: ", error);
+              alert("Gagal menghapus menu");
+            });
+        }
+      }
+
+      // Order management
+      let currentOrderItems = [];
+
+      // Load menu for new order modal
+      function loadModalMenu() {
+        const modalMenuList = document.getElementById("modalMenuList");
+        modalMenuList.innerHTML = "";
+
+        menuCollection
+          .where("status", "==", "Tersedia")
+          .get()
+          .then((snapshot) => {
+            snapshot.forEach((doc) => {
+              const data = doc.data();
+              const card = document.createElement("div");
+              card.className = "col-md-6 mb-3";
+              card.innerHTML = `
+                            <div class="card menu-card h-100">
+                                <div class="card-body">
+                                    <h5>${data.nama_menu}</h5>
+                                    <span class="badge bg-primary mb-2">${
+                                      data.kategori
+                                    }</span>
+                                    <p class="fw-bold">Rp${data.harga.toLocaleString()}</p>
+                                    <button class="btn btn-sm btn-primary w-100" 
+                                        onclick="addToOrder('${doc.id}', '${
+                data.nama_menu
+              }', ${data.harga})">
+                                        <i class="bi bi-plus"></i> Tambah
+                                    </button>
+                                </div>
+                            </div>`;
+              modalMenuList.appendChild(card);
+            });
+          });
+      }
+
+      // Add item to order
+      function addToOrder(menuId, menuName, price) {
+        const existingItem = currentOrderItems.find(
+          (item) => item.menuId === menuId
+        );
+
+        if (existingItem) {
+          existingItem.quantity += 1;
+          existingItem.subtotal = existingItem.quantity * price;
+        } else {
+          currentOrderItems.push({
+            menuId: menuId,
+            menuName: menuName,
+            price: price,
+            quantity: 1,
+            subtotal: price,
+          });
+        }
+
+        updateOrderItemsDisplay();
+      }
+
+      // Update order items display
+      function updateOrderItemsDisplay() {
+        const container = document.getElementById("orderItemsContainer");
+        container.innerHTML = "";
+
+        if (currentOrderItems.length === 0) {
+          container.innerHTML =
+            '<p class="text-muted">Belum ada item pesanan</p>';
+          document.getElementById("orderTotal").textContent = "Rp0";
+          return;
+        }
+
+        let total = 0;
+
+        currentOrderItems.forEach((item, index) => {
+          const itemElement = document.createElement("div");
+          itemElement.className = "order-item";
+          itemElement.innerHTML = `
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${item.menuName}</h6>
+                            <small class="text-muted">Rp${item.price.toLocaleString()} x ${
+            item.quantity
+          }</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">Rp${item.subtotal.toLocaleString()}</span>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeOrderItem(${index})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>`;
+          container.appendChild(itemElement);
+          total += item.subtotal;
+        });
+
+        document.getElementById(
+          "orderTotal"
+        ).textContent = `Rp${total.toLocaleString()}`;
+      }
+
+      // Remove item from order
+      function removeOrderItem(index) {
+        currentOrderItems.splice(index, 1);
+        updateOrderItemsDisplay();
+      }
+
+      // Submit new order
+      function submitOrder() {
+        if (currentOrderItems.length === 0) {
+          alert("Belum ada item dalam pesanan");
+          return;
+        }
+
+        const total = currentOrderItems.reduce(
+          (sum, item) => sum + item.subtotal,
+          0
+        );
+        const now = new Date();
+
+        // Generate order ID
+        const orderId = `ORD-${now.getFullYear()}${(now.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}${now
+          .getDate()
+          .toString()
+          .padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        // Create order document
+        ordersCollection
+          .doc(orderId)
+          .set({
+            tanggal_waktu: now,
+            total_harga: total,
+            status: "Proses",
+            kasir: currentUser.email,
+          })
+          .then(() => {
+            // Add order items
+            const batch = db.batch();
+
+            currentOrderItems.forEach((item) => {
+              const itemRef = orderDetailsCollection.doc();
+              batch.set(itemRef, {
+                id_pesanan: orderId,
+                id_menu: item.menuId,
+                nama_menu: item.menuName,
+                harga: item.price,
+                jumlah: item.quantity,
+                subtotal: item.subtotal,
+              });
+            });
+
+            return batch.commit();
+          })
+          .then(() => {
+            alert("Pesanan berhasil disimpan");
+            $("#newOrderModal").modal("hide");
+            currentOrderItems = [];
+            loadOrdersData();
+            loadDashboardData();
+          })
+          .catch((error) => {
+            console.error("Error submitting order: ", error);
+            alert("Gagal menyimpan pesanan");
+          });
+      }
+    </script>
+  </body>
+</html>
